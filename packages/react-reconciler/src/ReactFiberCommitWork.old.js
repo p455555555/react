@@ -489,6 +489,7 @@ function commitHookEffectListUnmount(
   }
 }
 
+// 执行 useEffect 相关的方法
 function commitHookEffectListMount(tag: number, finishedWork: Fiber) {
   const updateQueue: FunctionComponentUpdateQueue | null = (finishedWork.updateQueue: any);
   const lastEffect = updateQueue !== null ? updateQueue.lastEffect : null;
@@ -1948,6 +1949,7 @@ export function commitMutationEffects(
   firstChild: Fiber,
 ) {
   nextEffect = firstChild;
+  console.log('debug: commitMutationEffects nextEffect>>>', nextEffect);
   commitMutationEffects_begin(root, renderPriorityLevel);
 }
 
@@ -2066,7 +2068,9 @@ function commitMutationEffectsOnFiber(
   // updates, and deletions. To avoid needing to add a case for every possible
   // bitmap value, we remove the secondary effects from the effect tag and
   // switch on that value.
+  // 根据effectTag执行对应的dom操作
   const primaryFlags = flags & (Placement | Update | Hydrating);
+  // console.log('debug: primaryFlags>>>', finishedWork.elementType, primaryFlags);
   outer: switch (primaryFlags) {
     case Placement: {
       commitPlacement(finishedWork);

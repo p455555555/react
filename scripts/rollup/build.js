@@ -604,6 +604,7 @@ async function createBundle(bundle, bundleType) {
       freeze: false,
       interop: false,
       esModule: false,
+      sourcemap: true,
     },
   };
   const mainOutputPath = Packaging.getBundleOutputPath(

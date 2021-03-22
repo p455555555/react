@@ -1472,6 +1472,7 @@ export function renderHasNotSuspendedYet(): boolean {
 }
 
 function renderRootSync(root: FiberRoot, lanes: Lanes) {
+  console.log('debug: render 阶段>>>>>>');
   const prevExecutionContext = executionContext;
   executionContext |= RenderContext;
   const prevDispatcher = pushDispatcher();
@@ -1619,6 +1620,7 @@ function renderRootConcurrent(root: FiberRoot, lanes: Lanes) {
 function workLoopConcurrent() {
   // Perform work until Scheduler asks us to yield
   while (workInProgress !== null && !shouldYield()) {
+    console.log('debug: workLoopConcurrent !shouldYield=false>>>>>>>');
     performUnitOfWork(workInProgress);
   }
 }
@@ -1746,6 +1748,7 @@ function completeUnitOfWork(unitOfWork: Fiber): void {
 }
 
 function commitRoot(root) {
+  console.log('debug: commit 阶段>>>>');
   const previousUpdateLanePriority = getCurrentUpdateLanePriority();
   try {
     setCurrentUpdateLanePriority(SyncLanePriority);
@@ -1758,6 +1761,8 @@ function commitRoot(root) {
 }
 
 function commitRootImpl(root, renderPriorityLevel) {
+  // console.log('debug: commitRootImpl>>>>');
+  console.log('debug: mutation之前 阶段>>>>');
   do {
     // `flushPassiveEffects` will call `flushSyncUpdateQueue` at the end, which
     // means `flushPassiveEffects` will sometimes result in additional
@@ -1765,6 +1770,7 @@ function commitRootImpl(root, renderPriorityLevel) {
     // no more pending effects.
     // TODO: Might be better if `flushPassiveEffects` did not automatically
     // flush synchronous work at the end, to avoid factoring hazards like this.
+    // 调用flushPassiveEffects执行完所有effect的任务
     flushPassiveEffects();
   } while (rootWithPendingPassiveEffects !== null);
   flushRenderPhaseStrictModeWarningsInDEV();
@@ -1800,6 +1806,7 @@ function commitRootImpl(root, renderPriorityLevel) {
 
     return null;
   }
+  // 重置变量 finishedWork指rooFiber
   root.finishedWork = null;
   root.finishedLanes = NoLanes;
 
@@ -1811,6 +1818,7 @@ function commitRootImpl(root, renderPriorityLevel) {
 
   // commitRoot never returns a continuation; it always finishes synchronously.
   // So we can clear these now to allow a new callback to be scheduled.
+  // Scheduler回调函数重置
   root.callbackNode = null;
   root.callbackPriority = NoLanePriority;
 
@@ -1831,6 +1839,7 @@ function commitRootImpl(root, renderPriorityLevel) {
     }
   }
 
+   // 重置全局变量
   if (root === workInProgressRoot) {
     // We can reset these now that they are finished.
     workInProgressRoot = null;
@@ -1892,6 +1901,8 @@ function commitRootImpl(root, renderPriorityLevel) {
     // The first phase a "before mutation" phase. We use this phase to read the
     // state of the host tree right before we mutate it. This is where
     // getSnapshotBeforeUpdate is called.
+    // mutation阶段
+    console.log('debug: mutation阶段>>>>');
     const shouldFireAfterActiveInstanceBlur = commitBeforeMutationEffects(
       root,
       finishedWork,
@@ -1973,6 +1984,7 @@ function commitRootImpl(root, renderPriorityLevel) {
     }
   }
 
+  console.log('debug: mutation之后 阶段>>>>');
   const rootDidHavePassiveEffects = rootDoesHavePassiveEffects;
 
   if (rootDoesHavePassiveEffects) {
@@ -2081,6 +2093,7 @@ function commitRootImpl(root, renderPriorityLevel) {
   }
 
   // If layout work was scheduled, flush it now.
+  // 执行flushSyncCallbackQueue处理componentDidMount等生命周期或者useLayoutEffect等同步任务
   flushSyncCallbackQueue();
 
   if (__DEV__) {
@@ -2097,6 +2110,7 @@ function commitRootImpl(root, renderPriorityLevel) {
 }
 
 export function flushPassiveEffects(): boolean {
+  // console.log('debug: flushPassiveEffects 执行所有useEffects>>>');
   // Returns whether passive effects were flushed.
   if (pendingPassiveEffectsRenderPriority !== NoLanePriority) {
     const priorityLevel =

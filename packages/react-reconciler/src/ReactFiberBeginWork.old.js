@@ -257,6 +257,7 @@ export function reconcileChildren(
   nextChildren: any,
   renderLanes: Lanes,
 ) {
+  // console.log('debug: 节点diff 阶段>>> ' , current&& current.elementType, workInProgress.elementType);
   if (current === null) {
     // If this is a fresh new component that hasn't been rendered yet, we
     // won't update its child set by applying minimal side-effects. Instead,
@@ -3228,6 +3229,8 @@ function beginWork(
 ): Fiber | null {
   let updateLanes = workInProgress.lanes;
 
+  console.log('debug: beginWork workInProgress>>>', workInProgress);
+
   if (__DEV__) {
     if (workInProgress._debugNeedsRemount && current !== null) {
       // This will restart the begin phase with a new fiber.
@@ -3246,6 +3249,7 @@ function beginWork(
     }
   }
 
+  // current为空说明是在构建阶段，直接新建Fiber节点
   if (current !== null) {
     // TODO: The factoring of this block is weird.
     if (

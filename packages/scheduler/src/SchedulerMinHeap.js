@@ -7,23 +7,30 @@
  * @flow strict
  */
 
+/**
+ * 任务调度的优先队列（小顶堆）
+ */
+
 type Heap = Array<Node>;
 type Node = {|
   id: number,
   sortIndex: number,
 |};
 
+// 加入队列
 export function push(heap: Heap, node: Node): void {
   const index = heap.length;
   heap.push(node);
   siftUp(heap, node, index);
 }
 
+// 获取
 export function peek(heap: Heap): Node | null {
   const first = heap[0];
   return first === undefined ? null : first;
 }
 
+// 出队
 export function pop(heap: Heap): Node | null {
   const first = heap[0];
   if (first !== undefined) {

@@ -56,18 +56,19 @@ if (hasPerformanceNow) {
 // 0b111111111111111111111111111111
 var maxSigned31BitInt = 1073741823;
 
+// 任务超时时间常量
 // Times out immediately
-var IMMEDIATE_PRIORITY_TIMEOUT = -1;
+var IMMEDIATE_PRIORITY_TIMEOUT = -1; // 超时需立即执行的任务（优先级最高）
 // Eventually times out
-var USER_BLOCKING_PRIORITY_TIMEOUT = 250;
-var NORMAL_PRIORITY_TIMEOUT = 5000;
-var LOW_PRIORITY_TIMEOUT = 10000;
+var USER_BLOCKING_PRIORITY_TIMEOUT = 250; // 用户操作
+var NORMAL_PRIORITY_TIMEOUT = 5000; // 正常任务
+var LOW_PRIORITY_TIMEOUT = 10000; // 低优先及任务
 // Never times out
-var IDLE_PRIORITY_TIMEOUT = maxSigned31BitInt;
+var IDLE_PRIORITY_TIMEOUT = maxSigned31BitInt; // 空闲时执行低任务
 
 // Tasks are stored on a min heap
-var taskQueue = [];
-var timerQueue = [];
+var taskQueue = []; // 已过期任务
+var timerQueue = []; // 未过期任务
 
 // Incrementing id counter. Used to maintain insertion order.
 var taskIdCounter = 1;
@@ -316,7 +317,9 @@ function unstable_wrapCallback(callback) {
   };
 }
 
+// current模式任务调度入口
 function unstable_scheduleCallback(priorityLevel, callback, options) {
+  console.log('debug: unstable_scheduleCallback 调度入口>>>', priorityLevel, callback, options);
   var currentTime = getCurrentTime();
 
   var startTime;
@@ -332,27 +335,29 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
   }
 
   var timeout;
+  // 根据任务类型设置超时时间
   switch (priorityLevel) {
     case ImmediatePriority:
-      timeout = IMMEDIATE_PRIORITY_TIMEOUT;
+      timeout = IMMEDIATE_PRIORITY_TIMEOUT; // -1
       break;
     case UserBlockingPriority:
-      timeout = USER_BLOCKING_PRIORITY_TIMEOUT;
+      timeout = USER_BLOCKING_PRIORITY_TIMEOUT; // 250
       break;
     case IdlePriority:
-      timeout = IDLE_PRIORITY_TIMEOUT;
+      timeout = IDLE_PRIORITY_TIMEOUT; // 5000
       break;
     case LowPriority:
-      timeout = LOW_PRIORITY_TIMEOUT;
+      timeout = LOW_PRIORITY_TIMEOUT; // 10000
       break;
     case NormalPriority:
     default:
-      timeout = NORMAL_PRIORITY_TIMEOUT;
+      timeout = NORMAL_PRIORITY_TIMEOUT; // 不超时
       break;
   }
 
   var expirationTime = startTime + timeout;
 
+  // 新建一个任务对象
   var newTask = {
     id: taskIdCounter++,
     callback,
@@ -366,8 +371,10 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
   }
 
   if (startTime > currentTime) {
+    //没有过期
     // This is a delayed task.
     newTask.sortIndex = startTime;
+    // 加入未过期任务队列
     push(timerQueue, newTask);
     if (peek(taskQueue) === null && newTask === peek(timerQueue)) {
       // All tasks are delayed, and this is the task with the earliest delay.
@@ -382,6 +389,7 @@ function unstable_scheduleCallback(priorityLevel, callback, options) {
     }
   } else {
     newTask.sortIndex = expirationTime;
+    // 加入过期任务队列
     push(taskQueue, newTask);
     if (enableProfiling) {
       markTaskStart(newTask, currentTime);
@@ -516,12 +524,14 @@ function forceFrameRate(fps) {
 }
 
 const performWorkUntilDeadline = () => {
+  console.log('debug: CurrentTask 任务开始>>>');
   if (scheduledHostCallback !== null) {
     const currentTime = getCurrentTime();
     // Yield after `yieldInterval` ms, regardless of where we are in the vsync
     // cycle. This means there's always time remaining at the beginning of
     // the message event.
     deadline = currentTime + yieldInterval;
+    console.log('debug: deadline>>>', deadline);
     const hasTimeRemaining = true;
 
     // If a scheduler task throws, exit the current browser task so the
@@ -576,6 +586,7 @@ if (typeof setImmediate === 'function') {
   };
 }
 
+// 立即执行任务
 function requestHostCallback(callback) {
   scheduledHostCallback = callback;
   if (!isMessageLoopRunning) {

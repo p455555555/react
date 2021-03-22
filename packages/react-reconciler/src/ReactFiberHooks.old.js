@@ -346,15 +346,15 @@ function areHookInputsEqual(
 }
 
 export function renderWithHooks<Props, SecondArg>(
-  current: Fiber | null,
-  workInProgress: Fiber,
-  Component: (p: Props, arg: SecondArg) => any,
+  current: Fiber | null, // 对应的 fiber current树
+  workInProgress: Fiber,  // 对应的 fiber workInProgress树
+  Component: (p: Props, arg: SecondArg) => any, // 包含hooks的function组件
   props: Props,
   secondArg: SecondArg,
   nextRenderLanes: Lanes,
 ): any {
   renderLanes = nextRenderLanes;
-  currentlyRenderingFiber = workInProgress;
+  currentlyRenderingFiber = workInProgress; // 用于后面dispatchAction获取当前fiber节点
 
   if (__DEV__) {
     hookTypesDev =
@@ -586,18 +586,21 @@ export function resetHooksAfterThrow(): void {
 }
 
 function mountWorkInProgressHook(): Hook {
+  // hook数据结构
   const hook: Hook = {
-    memoizedState: null,
+    memoizedState: null, // 存放不同hook的副作用（值）
 
-    baseState: null,
-    baseQueue: null,
-    queue: null,
+    baseState: null, // 初始state
+    baseQueue: null, // 初始队列
+    queue: null, // 需要更新的update队列
 
-    next: null,
+    next: null, // 链表结构指针，用于链接下一个hook
   };
 
+  // 如果当前hook为空则重新构建一个hook结构 否则就链接在workInProgressHook链表后面
   if (workInProgressHook === null) {
     // This is the first hook in the list
+    // 新建一个hook并挂载在对应fiber节点上
     currentlyRenderingFiber.memoizedState = workInProgressHook = hook;
   } else {
     // Append to the end of the list
@@ -1235,6 +1238,7 @@ function updateMutableSource<Source, Snapshot>(
 function mountState<S>(
   initialState: (() => S) | S,
 ): [S, Dispatch<BasicStateAction<S>>] {
+  // console.log('debug: mountState>>> ', initialState);
   const hook = mountWorkInProgressHook();
   if (typeof initialState === 'function') {
     // $FlowFixMe: Flow doesn't like mixed types
@@ -1262,6 +1266,7 @@ function mountState<S>(
 function updateState<S>(
   initialState: (() => S) | S,
 ): [S, Dispatch<BasicStateAction<S>>] {
+  // console.log('debug: updateState>>> ', initialState);
   return updateReducer(basicStateReducer, (initialState: any));
 }
 
@@ -1435,6 +1440,7 @@ function mountEffect(
   create: () => (() => void) | void,
   deps: Array<mixed> | void | null,
 ): void {
+  console.log('debug: mountEffect>>> ');
   if (__DEV__) {
     // $FlowExpectedError - jest isn't a global, and isn't recognized outside of tests
     if ('undefined' !== typeof jest) {
@@ -1466,6 +1472,7 @@ function updateEffect(
   create: () => (() => void) | void,
   deps: Array<mixed> | void | null,
 ): void {
+  console.log('debug: updateEffect>>> ');
   if (__DEV__) {
     // $FlowExpectedError - jest isn't a global, and isn't recognized outside of tests
     if ('undefined' !== typeof jest) {
@@ -1903,6 +1910,7 @@ function dispatchAction<S, A>(
   queue: UpdateQueue<S, A>,
   action: A,
 ) {
+  // console.log('debug: dispatchAction>>> ', action);
   if (__DEV__) {
     if (typeof arguments[3] === 'function') {
       console.error(

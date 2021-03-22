@@ -442,6 +442,7 @@ const maxYieldInterval = 300;
 let needsPaint = false;
 
 function shouldYieldToHost() {
+  // 先判断浏览器是否支持navigator.scheduling
   if (
     enableIsInputPending &&
     navigator !== undefined &&
@@ -491,6 +492,7 @@ function requestPaint() {
 }
 
 function forceFrameRate(fps) {
+  console.log('debug: forceFrameRate>>>>', fps);
   if (fps < 0 || fps > 125) {
     // Using console['error'] to evade Babel and ESLint
     console['error'](
@@ -503,7 +505,7 @@ function forceFrameRate(fps) {
     yieldInterval = Math.floor(1000 / fps);
   } else {
     // reset the framerate
-    yieldInterval = 5;
+    yieldInterval = 5; //  默认5毫秒
   }
 }
 
